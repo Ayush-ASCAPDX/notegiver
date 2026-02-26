@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Sovereign Chat</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-page">
+  <div class="auth-card">
+    <h1>Login</h1>
+    <form id="loginForm" class="auth-form">
+      <input type="text" id="username" placeholder="Username" required>
+      <input type="password" id="password" placeholder="Password" required>
+      <button type="submit">Login</button>
+    </form>
+    <p class="auth-switch">New user? <a href="/register">Create account</a></p>
+    <p id="error" class="auth-error"></p>
+  </div>
+
+  <script src="auth.js"></script>
+  <script>
+    if (getToken()) {
+      window.location.href = "/chat";
+    }
+
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+
+      const errorEl = document.getElementById("error");
+      errorEl.textContent = "";
+
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        errorEl.textContent = data.error || "Login failed";
+        return;
+      }
+
+      saveAuth(data.token, data.user);
+      window.location.href = "/chat";
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - Sovereign Chat</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-page">
+  <div class="auth-card">
+    <h1>Settings</h1>
+    <form id="settingsForm" class="auth-form">
+      <input type="text" id="name" placeholder="New display name">
+      <input type="password" id="password" placeholder="New password">
+      <button type="submit">Save Changes</button>
+    </form>
+
+    <div class="settings-delete-block">
+      <h3>Delete Conversation</h3>
+      <select id="conversationUser"></select>
+      <button id="deleteConversationBtn" class="danger-btn" type="button">Delete Conversation</button>
+    </div>
+
+    <div class="settings-actions">
+      <a href="/chat" class="secondary-link">Back to chat</a>
+    </div>
+
+    <p id="status" class="auth-error"></p>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="auth.js"></script>
+  <script src="call-notifications.js"></script>
+  <script>
+    async function loadSettingsPage() {
+      const user = await requireAuth();
+      if (!user) return;
+
+      document.getElementById("name").value = user.name || "";
+
+      const usersRes = await authFetch("/api/users");
+      const users = await usersRes.json();
+      const select = document.getElementById("conversationUser");
+      select.innerHTML = users.map((u) => `<option value="${u.username}">${u.name} (@${u.username})</option>`).join("");
+    }
+
+    document.getElementById("settingsForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById("name").value.trim();
+      const password = document.getElementById("password").value;
+      const status = document.getElementById("status");
+
+      status.textContent = "";
+
+      const res = await authFetch("/api/settings", {
+        method: "PUT",
+        body: JSON.stringify({ name, password })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        status.textContent = data.error || "Failed to update settings";
+        return;
+      }
+
+      saveAuth(data.token, data.user);
+      status.textContent = "Settings updated";
+      document.getElementById("password").value = "";
+    });
+
+    document.getElementById("deleteConversationBtn").addEventListener("click", async () => {
+      const username = document.getElementById("conversationUser").value;
+      const status = document.getElementById("status");
+
+      if (!username) {
+        status.textContent = "Select a conversation";
+        return;
+      }
+
+      const res = await authFetch(`/api/conversations/${username}`, { method: "DELETE" });
+      if (!res.ok) {
+        status.textContent = "Failed to delete conversation";
+        return;
+      }
+
+      status.textContent = "Conversation deleted";
+    });
+
+    loadSettingsPage();
+  </script>
+</body>
+</html>
