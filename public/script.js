@@ -41,7 +41,7 @@ async function init() {
   setupIncomingCallHandlers();
 
   socket.on("presence", (presence) => {
-    usersPresence = presence;
+    mergePresenceUpdate(presence);
     renderUsers();
     updatePresenceIndicator();
   });
@@ -141,6 +141,23 @@ async function init() {
   document.addEventListener("click", () => {
     chatMenu.classList.add("hidden");
     closeAllMessageMenus();
+  });
+}
+
+  Object.keys(usersPresence).forEach((username) => {
+    if (onlineUsernames.has(username)) return;
+    usersPresence[username] = {
+      ...usersPresence[username],
+      online: false
+    };
+  });
+
+  Object.entries(nextPresence).forEach(([username, user]) => {
+    usersPresence[username] = {
+      ...(usersPresence[username] || {}),
+      ...user,
+      online: !!user?.online
+    };
   });
 }
 
