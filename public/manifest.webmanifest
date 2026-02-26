@@ -1,6 +1,6 @@
 {
-  "name": "Sovereign Chat",
-  "short_name": "SChat",
+  "name": "ASCAPDX Chat",
+  "short_name": "INIDA Chat",
   "description": "Private real-time chat with media and calls.",
   "start_url": "/chat",
   "scope": "/",
